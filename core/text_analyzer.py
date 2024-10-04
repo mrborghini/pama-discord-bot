@@ -7,12 +7,34 @@ class TextAnalyzer(TextAiMessage):
     def __init__(self, cfg: Configuration) -> None:
         super().__init__(cfg)
         self.__model_path = "bert_classifier.tflite"
-        
+        self.classifier = None
+    
+    def initialize_mediapipe(self):
         base_options = python.BaseOptions(model_asset_path=self.__model_path)
         options = text.TextClassifierOptions(base_options=base_options)
         self.classifier = text.TextClassifier.create_from_options(options)
+
+    def find_modern_matching_emoji(self, percentage: int) -> str:
+        if 0 <= percentage <= 10:
+            return "😄" # Happy
+        elif 11 <= percentage <= 30:
+            return "🙂"  # Slightly happy
+        elif 31 <= percentage <= 60:
+            return "😐"  # Neutral
+        elif 61 <= percentage <= 70:
+            return "😦"  # Slightly sad
+        elif 71 <= percentage <= 85:
+            return "😤"
+        elif 86 <= percentage <= 90:
+            return "😠"  # Angry
+        elif 91 <= percentage <= 95:
+            return "😡"  # More angry
+        elif 96 <= percentage <= 100:
+            return "🤬"  # More angry
+        else:
+            return "Invalid percentage"
     
-    def find_matching_emoji(self, percentage: int) -> str:
+    def find_matching_text_emoji(self, percentage: int) -> str:
         if 0 <= percentage <= 10:
             return ":D"  # Happy
         elif 11 <= percentage <= 20:
@@ -61,7 +83,30 @@ class TextAnalyzer(TextAiMessage):
     
     async def get_ollama_message_tone(self, message: str, author: str, user_id: int):
         message = await self.get_ollama_message(message, author)
-        percentage, _ = self.get_negative_percentage(message)
-        # Replace the username with the user id
         message = message.replace(author, f"<@{user_id}>")
-        return f"{message} {self.find_matching_emoji(percentage)}"
+
+        sentences = message.split(".")
+
+        output_message = ""
+
+        for sentence in sentences:
+            if sentence.strip() == "":
+                continue
+
+            percentage, _ = self.get_negative_percentage(sentence)
+            # Replace the username with the user id
+            
+            emoji = ""
+
+            if self._cfg.use_modern_emojis:
+                emoji = self.find_modern_matching_emoji(percentage)
+            else:
+                emoji = self.find_matching_text_emoji(percentage)
+            
+            output_message += f"{sentence}. {emoji} "
+
+        # Prevent character overflow discord
+        output_message = output_message[:1980]
+
+        
+        return output_message

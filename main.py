@@ -8,14 +8,15 @@ from core.text_analyzer import TextAnalyzer
 class Pama(discord.Client):
     def __init__(self, *, intents: discord.Intents, cfg: Configuration, **options: Any) -> None:
         super().__init__(intents=intents, **options)
+        self.__health = HealthCheck()
         self.__logger = Logger("Pama")
         self.__ollama = TextAnalyzer(cfg)
         self.__bot_id: int
-        self.__health = HealthCheck()
 
     async def on_ready(self):
         self.__bot_id = self.user.id
         await self.__health.check_and_fix()
+        self.__ollama.initialize_mediapipe()
         self.__logger.info(f'Logged in as {self.user}!')
 
     async def on_message(self, message):
@@ -36,7 +37,7 @@ def main():
     intents.message_content = True
 
     client = Pama(intents=intents, cfg=cfg)
-    logger.info("Successfully started")
+    logger.info("Logging in...")
     client.run(cfg.discord_token, log_level=0)
 
 if __name__ == "__main__":

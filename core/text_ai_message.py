@@ -29,11 +29,12 @@ class Conversation:
 
 class TextAiMessage:
     def __init__(self, cfg: Configuration) -> None:
+        self._cfg = cfg
         self.__base_url = cfg.ollama_url
         self.__ollama_model = cfg.ollama_model
         self.__conversation_file = "conversation.json"
         self.__system_message_file = "system_message.txt"
-        self.conversation: Conversation
+        self.__conversation: Conversation
         self.__logger = Logger("TextAiMessage")
         
     def get_system_message(self):
@@ -41,7 +42,7 @@ class TextAiMessage:
             with open(self.__system_message_file, "r") as f:
                 return f.read()
         except FileNotFoundError as e:
-            self.__logger.error(f"Could not find {self.__system_message_file}: {str(e)}", severity=Severity.HIGH)
+            self.__logger.error(f"Could not find {self.__system_message_file}: {str(e)}", severity=Severity.MEDIUM)
             return "You are now Pama from minecraft story mode"
     
     def load_conversation(self) -> Conversation:
@@ -49,34 +50,34 @@ class TextAiMessage:
             with open(self.__conversation_file, "r") as f:
                 out_json = json.load(f)
                 
-                self.conversation = Conversation()
+                self.__conversation = Conversation()
                 
                 for ollama_message in out_json:
-                    self.conversation.add_message(ollama_message["content"], ollama_message["author"])
+                    self.__conversation.add_message(ollama_message["content"], ollama_message["author"])
         except FileNotFoundError as e:
             self.__logger.warning(f"Conversation file doesn't exist {str(e)}", severity=Severity.LOW)
-            self.conversation = Conversation()
+            self.__conversation = Conversation()
     
     def save_conversation(self):
         with open(self.__conversation_file, "w") as f:
-            json.dump(self.conversation.to_dict(), f, indent=4)
+            json.dump(self.__conversation.to_dict(), f, indent=4)
 
     async def get_ollama_message(self, message: str, author: str) -> str:
         self.load_conversation()
-        self.conversation.add_message(message, author)
+        self.__conversation.add_message(message, author)
         async with httpx.AsyncClient() as client:
             content = {
                 "system": self.get_system_message(),
                 "model": self.__ollama_model,
                 "stream": False,
-                "prompt": self.conversation.to_string()
+                "prompt": self.__conversation.to_string()
             }
             try:
                 response = await client.post(f"{self.__base_url}/api/generate", json=content, timeout=None)
                 
                 text_message = response.json()
                 
-                self.conversation.add_message(text_message["response"], "Pama")
+                self.__conversation.add_message(text_message["response"], "Pama")
                 
                 self.save_conversation()
                 
