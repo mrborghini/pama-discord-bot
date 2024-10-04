@@ -22,7 +22,7 @@ class Pama(discord.Client):
         if message.author.id == self.__bot_id:
             return
         self.__logger.info(f'Message from {message.author.name}: {message.content}')
-        response = await self.__ollama.detect_message_tone(message.content)
+        response = await self.__ollama.get_ollama_message_tone(message.content, f"@{message.author.name}", message.author.id)
         
         await message.channel.send(response)
         
