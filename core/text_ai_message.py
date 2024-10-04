@@ -41,7 +41,7 @@ class TextAiMessage:
             with open(self.__system_message_file, "r") as f:
                 return f.read()
         except FileNotFoundError as e:
-            self.__logger.error(f"Could not find {self.__system_message_file}", severity=Severity.HIGH)
+            self.__logger.error(f"Could not find {self.__system_message_file}: {str(e)}", severity=Severity.HIGH)
             return "You are now Pama from minecraft story mode"
     
     def load_conversation(self) -> Conversation:
@@ -61,7 +61,7 @@ class TextAiMessage:
         with open(self.__conversation_file, "w") as f:
             json.dump(self.conversation.to_dict(), f, indent=4)
 
-    async def get_ollama_message(self, message: str, author: str):
+    async def get_ollama_message(self, message: str, author: str) -> str:
         self.load_conversation()
         self.conversation.add_message(message, author)
         async with httpx.AsyncClient() as client:
@@ -71,13 +71,16 @@ class TextAiMessage:
                 "stream": False,
                 "prompt": self.conversation.to_string()
             }
-            
-            response = await client.post(f"{self.__base_url}/api/generate", json=content)
-            
-            text_message = response.json()
-            
-            self.conversation.add_message(text_message["response"], "Pama")
-            
-            self.save_conversation()
-            
-            return text_message["response"]
+            try:
+                response = await client.post(f"{self.__base_url}/api/generate", json=content)
+                
+                text_message = response.json()
+                
+                self.conversation.add_message(text_message["response"], "Pama")
+                
+                self.save_conversation()
+                
+                return text_message["response"]
+            except Exception as e:
+                self.__logger.error(str(e))
+                return "Something went wrong 😭"
