@@ -1,3 +1,4 @@
+import time
 from core.health_check import HealthCheck
 from core.logger import Logger
 from typing import Any
@@ -12,6 +13,7 @@ class Pama(discord.Client):
         self.__logger = Logger("Pama")
         self.__ollama = TextAnalyzer(cfg)
         self.__bot_id: int
+        self.__cfg = cfg
 
     async def on_ready(self):
         self.__bot_id = self.user.id
@@ -20,6 +22,13 @@ class Pama(discord.Client):
         self.__logger.info(f'Logged in as {self.user}!')
 
     async def on_message(self, message):
+        if self.__cfg.allow_fake_sql_injection and "TRUNCATE PAMA;" in message.content:
+            start_time = time.time()
+            rows = self.__ollama.clear_conversation()
+            end_time = time.time() - start_time
+            await message.channel.send(f"Query OK, {rows} rows affected ({end_time:.3f} sec)")
+            return
+
         if message.author.id == self.__bot_id:
             return
         self.__logger.info(f'Message from {message.author.name}: {message.content}')

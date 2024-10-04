@@ -12,6 +12,7 @@ class Configuration:
     ollama_url: str
     discord_token: str
     use_modern_emojis: bool
+    allow_fake_sql_injection: bool
 
 
 class ConfigReader:
@@ -34,7 +35,8 @@ class ConfigReader:
                 ollama_model=output_json["ollamaModel"], 
                 ollama_url=output_json["ollamaUrl"], 
                 discord_token=output_json["discordToken"], 
-                use_modern_emojis=output_json["useModernEmojis"]
+                use_modern_emojis=output_json["useModernEmojis"],
+                allow_fake_sql_injection=output_json["allowFakeSQLInjection"]
             )
             
             return config

@@ -1,4 +1,5 @@
 import json
+import os
 
 import httpx
 
@@ -61,6 +62,14 @@ class TextAiMessage:
     def save_conversation(self):
         with open(self.__conversation_file, "w") as f:
             json.dump(self.__conversation.to_dict(), f, indent=4)
+    
+    def clear_conversation(self):
+        self.load_conversation()
+
+        if os.path.exists(self.__conversation_file):
+            os.remove(self.__conversation_file)
+            
+        return len(self.__conversation.messages)
 
     async def get_ollama_message(self, message: str, author: str) -> str:
         self.load_conversation()
