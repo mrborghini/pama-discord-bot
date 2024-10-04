@@ -15,7 +15,10 @@ class Pama(discord.Client):
 
     async def on_message(self, message):
         self.__logger.info(f'Message from {message.author.name}: {message.content}')
-        await self.__ollama.get_ollama_message(message.content, f"@{message.author.name}")
+        response = await self.__ollama.get_ollama_message(message.content, f"@{message.author.name}")
+        
+        await message.channel.send(response)
+        
 
 def main():
     logger = Logger("main")

@@ -19,7 +19,7 @@ class Conversation:
         new_message = OllamaMessage()
         new_message.author = author
         new_message.content = content
-        self.messages.append()
+        self.messages.append(new_message)
         
     def to_dict(self):
         return [{"author": message.author, "content": message.content} for message in self.messages]
@@ -55,6 +55,7 @@ class TextAiMessage:
                     self.conversation.add_message(ollama_message["content"], ollama_message["author"])
         except FileNotFoundError as e:
             self.__logger.warning(f"Conversation file doesn't exist {str(e)}", severity=Severity.LOW)
+            self.conversation = Conversation()
     
     def save_conversation(self):
         with open(self.__conversation_file, "w") as f:
@@ -71,6 +72,12 @@ class TextAiMessage:
                 "prompt": self.conversation.to_string()
             }
             
-            response = await client.post(self.__base_url, json=content)
+            response = await client.post(f"{self.__base_url}/api/generate", json=content)
             
-            print(response.json())
+            text_message = response.json()
+            
+            self.conversation.add_message(text_message["response"], "Pama")
+            
+            self.save_conversation()
+            
+            return text_message["response"]
