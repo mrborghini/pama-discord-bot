@@ -66,13 +66,13 @@ class TextAiMessage:
         self.conversation.add_message(message, author)
         async with httpx.AsyncClient() as client:
             content = {
-                "system_message": self.get_system_message(),
+                "system": self.get_system_message(),
                 "model": self.__ollama_model,
                 "stream": False,
                 "prompt": self.conversation.to_string()
             }
             try:
-                response = await client.post(f"{self.__base_url}/api/generate", json=content)
+                response = await client.post(f"{self.__base_url}/api/generate", json=content, timeout=None)
                 
                 text_message = response.json()
                 

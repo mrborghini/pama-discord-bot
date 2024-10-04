@@ -9,11 +9,15 @@ class Pama(discord.Client):
         super().__init__(intents=intents, **options)
         self.__logger = Logger("Pama")
         self.__ollama = TextAiMessage(cfg)
+        self.__bot_id: int
 
     async def on_ready(self):
+        self.__bot_id = self.user.id
         self.__logger.info(f'Logged in as {self.user}!')
 
     async def on_message(self, message):
+        if message.author.id == self.__bot_id:
+            return
         self.__logger.info(f'Message from {message.author.name}: {message.content}')
         response = await self.__ollama.get_ollama_message(message.content, f"@{message.author.name}")
         
