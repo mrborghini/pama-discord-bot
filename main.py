@@ -22,7 +22,7 @@ class Pama(discord.Client):
         self.__logger.info(f'Logged in as {self.user}!')
 
     async def on_message(self, message):
-        if self.__cfg.allow_fake_sql_injection and "TRUNCATE PAMA;" in message.content:
+        if self.__cfg.allow_fake_sql_injection and message.content == "TRUNCATE PAMA;":
             start_time = time.time()
             rows = self.__ollama.clear_conversation()
             end_time = time.time() - start_time
