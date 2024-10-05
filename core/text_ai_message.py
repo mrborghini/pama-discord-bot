@@ -92,5 +92,5 @@ class TextAiMessage:
                 
                 return text_message["response"]
             except Exception as e:
-                self.__logger.error(str(e))
+                self.__logger.error(str(e), severity=Severity.MEDIUM)
                 return "Something went wrong 😭"
