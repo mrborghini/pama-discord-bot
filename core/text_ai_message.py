@@ -13,14 +13,33 @@ class OllamaMessage:
 class Conversation:
     messages: list[OllamaMessage]
     
-    def __init__(self) -> None:
+    def __init__(self, max_messages: int) -> None:
         self.messages = []
+        self.max_messages = max_messages
     
     def add_message(self, content: str, author: str):
         new_message = OllamaMessage()
         new_message.author = author
         new_message.content = content
         self.messages.append(new_message)
+        self.trim_messages()
+    
+    def trim_messages(self):
+        if self.max_messages == 0:
+            return
+        
+        # Remove the max
+        if len(self.messages) == self.max_messages + 1:
+            self.messages.pop(0)
+            return
+        
+        # If more than allowed messages are detected remove multiple
+        if len(self.messages) > self.max_messages + 1:
+            for _ in self.messages:
+                if len(self.messages) == self.max_messages:
+                    return
+                
+                self.messages.pop(0)
         
     def to_dict(self):
         return [{"author": message.author, "content": message.content} for message in self.messages]
@@ -51,13 +70,16 @@ class TextAiMessage:
             with open(self.__conversation_file, "r") as f:
                 out_json = json.load(f)
                 
-                self.__conversation = Conversation()
+                self.__conversation = Conversation(self._cfg.max_stored_messages)
                 
                 for ollama_message in out_json:
                     self.__conversation.add_message(ollama_message["content"], ollama_message["author"])
         except FileNotFoundError as e:
             self.__logger.warning(f"Conversation file doesn't exist {str(e)}", severity=Severity.LOW)
-            self.__conversation = Conversation()
+            self.__conversation = Conversation(self._cfg.max_stored_messages)
+        except Exception as e:
+            self.__logger.error(f"Uncaught exception: {str(e)}")
+            self.__conversation = Conversation(self._cfg.max_stored_messages)
     
     def save_conversation(self):
         with open(self.__conversation_file, "w") as f:

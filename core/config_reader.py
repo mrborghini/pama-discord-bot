@@ -13,6 +13,7 @@ class Configuration:
     discord_token: str
     use_modern_emojis: bool
     allow_fake_sql_injection: bool
+    max_stored_messages: int
 
 
 class ConfigReader:
@@ -36,7 +37,8 @@ class ConfigReader:
                 ollama_url=output_json["ollamaUrl"], 
                 discord_token=output_json["discordToken"], 
                 use_modern_emojis=output_json["useModernEmojis"],
-                allow_fake_sql_injection=output_json["allowFakeSQLInjection"]
+                allow_fake_sql_injection=output_json["allowFakeSQLInjection"],
+                max_stored_messages=output_json["maxStoredMessages"]
             )
             
             return config
