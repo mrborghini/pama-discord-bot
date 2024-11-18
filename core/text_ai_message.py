@@ -78,7 +78,7 @@ class TextAiMessage:
             self.__logger.warning(f"Conversation file doesn't exist {str(e)}", severity=Severity.LOW)
             self.__conversation = Conversation(self._cfg.max_stored_messages)
         except Exception as e:
-            self.__logger.error(f"Uncaught exception: {str(e)}")
+            self.__logger.error(f"Uncaught exception: {str(e)}", severity=Severity.MEDIUM)
             self.__conversation = Conversation(self._cfg.max_stored_messages)
     
     def save_conversation(self):
