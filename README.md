@@ -15,8 +15,24 @@ And here is a negative message:
 ## How to setup?
 First make sure you have the following things installed:
 
-- [Python 3.10 or 3.12 (other version untested)](https://www.python.org/)
+- [Python 3.10 or 3.12 (other version untested)](https://www.python.org/) or [Docker](https://www.docker.com/)
 - [Ollama](https://ollama.com/)
+
+### Docker
+
+First run
+
+```bash
+cp example_config.json config.json
+```
+
+Then change the edit the `config.json` to your liking.
+
+After you have configured `config.json` you can run:
+
+```bash
+docker compose up -d
+```
 
 ### Automatic installation
 

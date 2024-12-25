@@ -1,0 +1,5 @@
+services:
+  pama:
+    restart: always
+    build:
+      context: .
